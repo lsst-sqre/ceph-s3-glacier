@@ -18,19 +18,24 @@ config_files = ['/usr/local/etc/s3s3.ini',
                 os.path.join(os.curdir, 's3s3.ini')]
 
 
-def get_source_connection(config):
+def get_source_connection(config, source_bucket=None):
     if config.has_section('source'):
-        return {k: v for k, v in config['source'].items()}
+        source = {k: v for k, v in config['source'].items()}
+        if source_bucket:
+            source['bucket_name'] = source_bucket
+        return source
     else:
         return {}
 
 
-def get_dest_connections(config):
+def get_dest_connections(config, dest_bucket=None):
     destinations = {}
     for section_name in config.sections():
         if section_name.startswith('dest'):
             destinations[section_name] =\
                 {k: v for k, v in config[section_name].items()}
+            if dest_bucket:
+                destinations[section_name]['bucket_name'] = dest_bucket
     return destinations
 
 
@@ -84,7 +89,7 @@ def has_required_sections(config):
     return True
 
 
-def initialize(config_file=None):
+def initialize(config_file=None, source_bucket=None, dest_bucket=None):
     global source, destinations, pubsub
     config = configparser.ConfigParser()
     if config_file:
@@ -93,8 +98,8 @@ def initialize(config_file=None):
     if has_required_sections(config):
         logger.warning('Missing required sections: {0}'.format(
             required_sections))
-    source = get_source_connection(config)
-    destinations = get_dest_connections(config)
+    source = get_source_connection(config, source_bucket)
+    destinations = get_dest_connections(config, dest_bucket)
     pubsub = get_pubsub(config)
     connection_fixup({'source': source}, destinations)
 

@@ -21,9 +21,9 @@ def duplicate():
     """
     try:
         bc = BucketClient()
-        bc.duplicate()
+        return bc.duplicate()
     except KeyboardInterrupt:
-        return True
+        return False
     except Exception as e:
         logger.warning(e)
         return False
@@ -33,9 +33,15 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--config', type=str,
                         help='Configuration file to use.')
+    parser.add_argument('--source-bucket', type=str,
+                        help='The bucket name to use with source '
+                        'connnections.')
+    parser.add_argument('--dest-bucket', type=str,
+                        help='The bucket name to use with destination '
+                        'connections.')
     args = parser.parse_args()
-    if args.config:
-        initialize(args.config)
+    if args.config or args.source_bucket or args.dest_bucket:
+        initialize(args.config, args.source_bucket, args.dest_bucket)
     if duplicate():
         exit(0)
     else:
